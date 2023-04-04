@@ -42,11 +42,11 @@ nginx.conf.j2 - шаблона для конфига NGINX
 7. Чтобы не пришлось в дальнейшем каждый раз явно указывать наш инвентори файл в
    командной строке, создадим файл конфигурации ansible.cfg
    Для этого в текущем каталоге создадим файл ansible.cfg со следующим содержанием - "cat ansible.cfg" 
-"   [defaults]
-    inventory = inventory
-    remote_user= vagrant
-    host_key_checking = False
-    transport=smart"
+>    [defaults]
+>    inventory = inventory
+>    remote_user= vagrant
+>    host_key_checking = False
+>    transport=smart"
 8. Теперь из инвентори можно убрать информацию о пользователе 
    " nginx ansible_host=127.0.0.1 ansible_port=2203 ansible_ssh_private_key_file=.vagrant/ma
 chines/nginx/virtualbox/private_key "
@@ -57,83 +57,84 @@ chines/nginx/virtualbox/private_key "
     прошлом слайде - а именно: установку пакета epel-release. Создайте файл epel.yml со
     следующим содержимым. Внимательно соблюдайте отступы, т. к. YaML очень чувствителен
     к синтаксису: 
-   "- name: Install EPEL Repo
-    hosts: webservers
-    become: true
-    tasks:
-        - name: Install EPEL Repo package from standard repo
-        yum:
-            name: epel-release
-            state: present "
+>   - name: Install EPEL Repo
+>   hosts: webservers
+>   become: true
+>   tasks:
+>   - name: Install EPEL Repo package from standard repo
+>     yum: 
+>       name: epel-release
+>       state: present
+
 13. После чего запустите выполнение Playbook - "ansible-playbook epel.yml"
 14. Теперь собственно приступим к выполнению домашнего задания и написания Playbook-а для
     установки NGINX. Будем писать его постепенно, шаг за шагом.За основу возьмем уже созданный нами плейбук epel.yml. Скопируйте этот файл с именем
   " nginx.yml (командой cp):
-    - name: Install nginx package from epel repo
-    hosts: webservers
-    become: true
-    tasks:
-        - name: Install EPEL Repo package from standard repo
-        yum:
-            name: epel-release
-            state: present
-        - name: install nginx from repo
-        yum:
-            name: nginx
-            state: latest
-        tags:
-            nginx-package
-            packages "
+>    - name: Install nginx package from epel repo
+>    hosts: webservers
+>    become: true
+>    tasks:
+>        - name: Install EPEL Repo package from standard repo
+>        yum:
+>            name: epel-release
+>            state: present
+>        - name: install nginx from repo
+>        yum:
+>            name: nginx
+>            state: latest
+>        tags:
+>            nginx-package
+>            packages 
 15. Теперь можно вывести в консоль список тегов и
     выполнить, например, только часть из задач описанных в плейбуке, а именно установку
     NGINX. В нашем случае так, например, можно осуществлять его обновление.
     Выведем в консоль все теги - "ansible-playbook nginx.yml —list-tags"
 16. Далее создадим файл шаблона для конфига NGINX, имя файла nginx.conf.j2 - "cat nginx.conf.j2". С следующим содержанием:
-  " events {
-    worker_connections 1024;
-    }
-    http {
-    server {
-    listen {{ nginx_listen_port }} default_server;
-    server_name default_server;
-    root /usr/share/nginx/html;
-    location / {
-    }
-   }
-  }"
+>    events {
+>    worker_connections 1024;
+>    }
+>    http {
+>    server {
+>    listen {{ nginx_listen_port }} default_server;
+>    server_name default_server;
+>    root /usr/share/nginx/html;
+>    location / {
+>    }
+>   }
+>  }
 17. И добавим в плейбук задачу, которая копирует подготовленный шаблон на хост. Для этой
     задачи используется модуль template - "cat nginx.yml"
  "- name: Install nginx package from epel repo
-  hosts: webservers
-  become: true
-  vars:
-    nginx_listen_port: 8080
-  tasks:
-    - name: Install EPEL Repo package from standard repo
-      yum:
-        name: epel-release
-        state: present
-    - name: install nginx from repo
-      yum:
-        name: nginx
-        state: latest
-      tags:
-        - nginx-package
-        - packages
-    - name: Create config file from template
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-      notify:
-        - restart nginx
-      tags:
-        - nginx-configuration
-  handlers:
-    - name: restart nginx
-      systemd:
-        name: nginx
-        state: restarted
-        enabled: yes "
+>  hosts: webservers
+>  become: true
+>  vars:
+>    nginx_listen_port: 8080
+>  tasks:
+>    - name: Install EPEL Repo package from standard repo
+>      yum:
+>        name: epel-release
+>        state: present
+>    - name: install nginx from repo
+>      yum:
+>        name: nginx
+>        state: latest
+>      tags:
+>        - nginx-package
+>        - packages
+>    - name: Create config file from template
+>      template:
+>        src: nginx.conf.j2
+>        dest: /etc/nginx/nginx.conf
+>      notify:
+>        - restart nginx
+>      tags:
+>        - nginx-configuration
+>  handlers:
+>    - name: restart nginx
+>      systemd:
+>        name: nginx
+>        state: restarted
+>        enabled: yes "
 18. Пишем  - "ansible-playbook nginx.yml"
 19. Теперь, чтобы проверить работу NGINX на нестандартном порту, нам надо выяснить IP
     адрес, который получила виртуальная машина при создании vagrant-ом
