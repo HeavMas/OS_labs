@@ -42,14 +42,14 @@ nginx.conf.j2 - шаблона для конфига NGINX
 7. Чтобы не пришлось в дальнейшем каждый раз явно указывать наш инвентори файл в
    командной строке, создадим файл конфигурации ansible.cfg
    Для этого в текущем каталоге создадим файл ansible.cfg со следующим содержанием - "cat ansible.cfg" 
-   [defaults]
+"   [defaults]
     inventory = inventory
     remote_user= vagrant
     host_key_checking = False
-    transport=smart
+    transport=smart"
 8. Теперь из инвентори можно убрать информацию о пользователе 
-    nginx ansible_host=127.0.0.1 ansible_port=2203 ansible_ssh_private_key_file=.vagrant/ma
-chines/nginx/virtualbox/private_key
+   " nginx ansible_host=127.0.0.1 ansible_port=2203 ansible_ssh_private_key_file=.vagrant/ma
+chines/nginx/virtualbox/private_key "
 9. Посмотрим какое ядро установлено на хосте - "ansible nginx -m command -a "uname -r""
 10.  Проверим статус сервиса firewalld - "ansible nginx -m systemd -a name=firewalld"
 11. Установим пакет epel-release на наш хост - "ansible nginx -m yum -a "name=epel-release state=present" -b"
@@ -57,18 +57,18 @@ chines/nginx/virtualbox/private_key
     прошлом слайде - а именно: установку пакета epel-release. Создайте файл epel.yml со
     следующим содержимым. Внимательно соблюдайте отступы, т. к. YaML очень чувствителен
     к синтаксису: 
-    - name: Install EPEL Repo
+   "- name: Install EPEL Repo
     hosts: webservers
     become: true
     tasks:
         - name: Install EPEL Repo package from standard repo
         yum:
             name: epel-release
-            state: present
+            state: present "
 13. После чего запустите выполнение Playbook - "ansible-playbook epel.yml"
 14. Теперь собственно приступим к выполнению домашнего задания и написания Playbook-а для
     установки NGINX. Будем писать его постепенно, шаг за шагом.За основу возьмем уже созданный нами плейбук epel.yml. Скопируйте этот файл с именем
-    nginx.yml (командой cp):
+  " nginx.yml (командой cp):
     - name: Install nginx package from epel repo
     hosts: webservers
     become: true
@@ -83,13 +83,13 @@ chines/nginx/virtualbox/private_key
             state: latest
         tags:
             nginx-package
-            packages
+            packages "
 15. Теперь можно вывести в консоль список тегов и
     выполнить, например, только часть из задач описанных в плейбуке, а именно установку
     NGINX. В нашем случае так, например, можно осуществлять его обновление.
     Выведем в консоль все теги - "ansible-playbook nginx.yml —list-tags"
 16. Далее создадим файл шаблона для конфига NGINX, имя файла nginx.conf.j2 - "cat nginx.conf.j2". С следующим содержанием:
-    events {
+  " events {
     worker_connections 1024;
     }
     http {
@@ -100,10 +100,10 @@ chines/nginx/virtualbox/private_key
     location / {
     }
    }
-  }
+  }"
 17. И добавим в плейбук задачу, которая копирует подготовленный шаблон на хост. Для этой
     задачи используется модуль template - "cat nginx.yml"
-    - name: Install nginx package from epel repo
+ "- name: Install nginx package from epel repo
   hosts: webservers
   become: true
   vars:
@@ -133,7 +133,7 @@ chines/nginx/virtualbox/private_key
       systemd:
         name: nginx
         state: restarted
-        enabled: yes
+        enabled: yes "
 18. Пишем  - "ansible-playbook nginx.yml"
 19. Теперь, чтобы проверить работу NGINX на нестандартном порту, нам надо выяснить IP
     адрес, который получила виртуальная машина при создании vagrant-ом
@@ -144,4 +144,4 @@ chines/nginx/virtualbox/private_key
     третий как раз публичный и к нему можно обращаться.
     Попингуйте этот адрес, убедитесь, что он отвечает.
     Затем в браузере откройте страницу
-    http://ip_address:8080
+   " http://ip_address:8080 " 
