@@ -1,0 +1,13 @@
+---
+# handlers file for balance
+- name: Start and enabled haproxy
+  ansible.builtin.systemd:
+    name: haproxy
+    state: restarted
+    enabled: true
+
+- name: Start and enabled keepalived
+  ansible.builtin.systemd:
+    name: keepalived
+    state: restarted
+    enabled: true

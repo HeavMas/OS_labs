@@ -1,0 +1,17 @@
+- name: Disable selinux
+  hosts: all
+  become: true
+  roles: 
+    - selinux-disabled
+
+- name: Install nginx for webserver
+  hosts: webservers
+  become: true
+  roles: 
+    - webserver
+
+- name: Install haproxy and keepalived for balancer
+  hosts: balancer
+  become: true
+  roles: 
+    - balancer
