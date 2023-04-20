@@ -1,0 +1,61 @@
+scope: sirius
+name: {{ ansible_hostname }}
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: {{ ansible_enp0s8.ipv4.address }}:8008
+
+consul:
+  host: "127.0.0.1:8500"
+
+log:
+  dir: /var/log/patroni
+  file_num: 30
+  file_size: 104857600
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout : 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: true
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_keep_segments: 1875
+        max_connections: 100
+        max_prepared_transactions: 100
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+    - waldir: {{ path_postgres_wal }}/{{version_postgres}}
+
+  pg_hba:
+    - host replication repluser 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+
+postgresql:
+  listen: 0.0.0.0:{{ port_postgres }}
+  connect_address: {{ ansible_enp0s8.ipv4.address }}:{{ port_postgres }}
+  data_dir: {{ path_postgres_data }}/{{version_postgres}}
+  bin_dir: /usr/pgsql-{{version_postgres}}/bin
+  basebackup:
+    - waldir: {{ path_postgres_wal }}/{{version_postgres}}
+  authentication:
+    replication:
+      username: repluser
+      password: Agh8ohco
+    superuser:
+      username: postgres
+      password: Uoquied2
+  parameters:
+    archive_mode: 'on'
+#    archive_command: "/usr/pgsql-{{version_postgres}}/bin/pg_probackup archive-push -B /pgsql/pg_backup --instance=backup --wal-file-path=%p --wal-file-name=%f --compress --batch-size=4 -j 2"
+    archive_command: "/bin/true"
+    archive_timeout: 1800s
+  create_replica_methods:
+    - basebackup
+
