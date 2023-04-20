@@ -1,0 +1,88 @@
+---
+- name: Install python2/3-libselinux package in REDOS
+  yum:
+    name:
+      - python2-libselinux
+      - python3-libselinux
+    state: present
+  when: ansible_os_family == "RED"
+  tags: selinux
+
+- name: Check consul binary exists
+  stat:
+    path: /usr/bin/consul
+  register: consul_bin
+  tags: consul_bin
+
+- name: Copy consul
+  copy:
+    src: consul-1.8.4-4.x86_64.rpm
+    dest: /tmp
+
+- name: Install consul rpm
+  yum:
+    name: /tmp/consul-1.8.4-4.x86_64.rpm
+    disable_gpg_check: yes
+    state: present
+
+  when: not consul_bin.stat.exists
+  tags: consul_bin
+
+- name: Create consul log directory
+  file:
+    path: /var/log/consul
+    state: directory
+    owner: consul
+    group: consul
+    mode: '0750'
+  tags: consul_bin
+
+- name: Enable consul autocompletion
+  lineinfile:
+    path: /root/.bashrc
+    regexp: '^complete .*consul'
+    line: complete -C /bin/consul consul
+
+## autodetect datacenter name by servers ip address
+- name: Find datacenter name by consul servers networks
+  block:
+
+    - name: Collect server datacenters
+      set_fact:
+        datacenters: "\
+          {% set _datacenters = [] %}\
+          {% for host in groups[consul_ansible_group] %}\
+            {% if (hostvars[host]['consul_role'] == 'server') %}\
+              {% if _datacenters.append(host | ip_datacenter) %}{% endif %}\
+            {% endif %}\
+          {% endfor %}\
+          {{ _datacenters }}"
+
+    - name: Set datacenter name from datacenters
+      set_fact:
+        dc_name: "{{ datacenters|unique|first }}"
+      when: datacenters|unique|length == 1
+
+  run_once: true
+  when: dc_name is not defined
+  tags: always
+
+- name: Set datacenter name by system name (rescue)
+  set_fact:
+    dc_name: "{{ dc_name | default(system_name ~ '-dc', true) }}"
+  run_once: true
+  tags: always
+
+######### Tasks for gossip encryption key
+- name: Include gossip encrypt tasks
+  include_tasks: encrypt_gossip.yml
+
+- name: Copy consul general configuration
+  template: src=consul.hcl.j2 dest=/etc/consul.d/consul.hcl owner=consul group=consul mode=0640
+  notify: restart consul
+
+- name: Copy consul server configuration
+  template: src=server.hcl.j2 dest=/etc/consul.d/server.hcl owner=consul group=consul mode=0640
+  when: consul_role == 'server'
+  notify: restart consul
+  tags: server_hcl

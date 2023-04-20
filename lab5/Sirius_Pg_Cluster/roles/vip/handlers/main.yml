@@ -1,0 +1,6 @@
+---
+- name: Restart and enabled vip-manager
+  ansible.builtin.systemd:
+    name: vip-manager
+    state: restarted
+    enabled: true
