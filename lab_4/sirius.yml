@@ -1,0 +1,17 @@
+- name: Disable selinux
+  hosts: all
+  become: true
+  roles: 
+    - selinux-disabled
+
+- name: Init database
+  hosts: pg
+  become: yes
+  roles: 
+    - init-db
+
+- name: Install nginx and php for webserver
+  hosts: web
+  become: true
+  roles: 
+    - webserver

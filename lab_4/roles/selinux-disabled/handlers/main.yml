@@ -1,0 +1,6 @@
+---
+# handlers file for selinux-disabled
+
+- name: Reboot machine
+  ansible.builtin.reboot:
+    reboot_timeout: 60

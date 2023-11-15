@@ -1,0 +1,10 @@
+---
+# tasks file for selinux-disabled
+
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+  notify:
+    - Reboot machine
+  tags: 
+    - selinux

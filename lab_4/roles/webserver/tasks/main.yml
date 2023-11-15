@@ -1,0 +1,54 @@
+---
+# tasks file for webserver
+- name: Install the latest version of nginx and php
+  ansible.builtin.dnf:
+    name: 
+      - nginx
+      - php-fpm
+      - php-pgsql
+    state: latest
+  tags: 
+    - web
+
+
+- name: Template a file to "{{ path_to_doc }}/{{ docs_name }}"
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ path_to_doc }}/{{ docs_name }}"
+    owner: root
+    group: root
+  tags:
+    - web
+
+- name: Template a file to /etc/nginx/nginx.conf
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+  notify:
+    - Start and enabled nginx and php
+  tags:
+    - web
+
+- name: Template a file to /etc/php-fpm.d/www.conf
+  ansible.builtin.template:
+    src: www.conf.j2
+    dest: /etc/php-fpm.d/www.conf
+    owner: root
+    group: root
+  notify:
+    - Start and enabled nginx and php
+  tags:
+    - web
+
+- name: Template a file to /usr/share/nginx/html/nginx.html
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /usr/share/nginx/html/index.html
+    owner: root
+    group: root
+  notify:
+    - Start and enabled nginx and php
+  tags:
+    - web

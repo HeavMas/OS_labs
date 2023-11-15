@@ -1,0 +1,14 @@
+### Init Data Base
+password_db_user: 123
+mask_of_server: 24
+allowed_ip_adresses: 192.168.11.0
+postgres_data_dir: /var/lib/pgsql/14/data
+postgres_major_version: 14
+
+---
+### Webserver
+nginx_port: 8080
+php_port: 9000
+db_request: "SELECT * FROM bookings.aircrafts"
+path_to_doc: /usr/share/nginx/html
+docs_name: index.php

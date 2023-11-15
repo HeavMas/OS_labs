@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<title>Таблица</title>
+<body>
+<style>
+   table {
+    background: #FFFFE0;
+    color: #FFFACD;
+   }
+   td {
+    background: #DDA0DD;
+   }
+  </style>
+<p>Таблица</p>
+<form name="insert" action="phpinfo.php" method="POST" >
+<li>AircraftCode:</li><li><input type="text" name="aircraft_code" /></li>
+<li>Model:</li><li><input type="text" name="model" /></li>
+<li>Range:</li><li><input type="text" name="range" /></li>
+<li><input type="submit" value="Добавить данные" /></li>
+</form>
+<table border=1>
+<?php
+    $connect_data = "host=192.168.11.90 port=5432 dbname=small user=postgres password=123";
+    $db_connect = pg_connect($connect_data);
+    pg_query("INSERT INTO bookings.aircrafts_data VALUES ('$_POST[aircraft_code]','$_POST[model]', '$_POST[range]')");
+    $result = pg_query($db_connect, "SELECT * FROM bookings.aircrafts_data");
+    echo '<tr>';
+    echo '<td align=center color="#fa8e47"> aircraft_code </td>';
+    echo '<td align=center color="#fa8e47">  model </td>';
+    echo '<td align=center color="#fa8e47"> range </td>';
+    echo '</tr>';
+
+    while ($row = pg_fetch_assoc($result))
+    {
+       echo '<tr>';
+       echo '<td>'. $row['aircraft_code'] . '</td>';
+       echo '<td>'. $row['model'] . '</td>';
+       echo '<td>'. $row['range'] . '</td>';
+       echo '</tr>';
+    }
+    pg_close($connect_data);
+?>
+</table>
+</body>

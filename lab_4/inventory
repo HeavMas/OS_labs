@@ -1,0 +1,4 @@
+[web]
+web ansible_host=192.168.11.80 
+[pg]
+pg ansible_host=192.168.11.90 

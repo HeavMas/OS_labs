@@ -1,0 +1,78 @@
+---
+# tasks file for init-db
+- name: Copy database
+  copy:
+    src: small.sql # можно переменную
+    dest: /tmp
+  tags: 
+    - init-db
+
+- name: Install the latest version of postgres
+  ansible.builtin.dnf:
+    name: 
+      - postgresql14-server
+    state: latest
+
+- name: Check initialized database
+  stat:
+    path: "/var/lib/pgsql/14/data/PG_VERSION"
+  register: pgversion
+
+- name: Postgres Pro initdb
+  ansible.builtin.shell: "postgresql-14-setup initdb"
+  when: not pgversion.stat.exists
+
+- name: Start and enable postgresql-service
+  ansible.builtin.systemd:
+    name: postgresql-14.service
+    state: restarted
+    enabled: true
+
+- name: Create db
+  ansible.builtin.shell: "psql -f /tmp/small.sql -U postgres"
+  become_user: postgres
+  tags: 
+    - init-db
+
+- name: Install the latest version of psycopg2
+  ansible.builtin.dnf:
+    name: 
+      - python3-psycopg2
+    state: latest
+  tags:
+    - change_pw
+    - init-db
+ 
+- name: Create appclient user with SCRAM-hashed password
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: postgres
+    password: "{{ password_db_user }}"
+  environment:
+    PGOPTIONS: "-c password_encryption=scram-sha-256"
+  tags:
+    - change_pw
+    - init-db
+
+- name: Template a file to /var/lib/pgsql/14/data/pg_hba.conf
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: /var/lib/pgsql/14/data/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "600"
+  tags:
+    - web
+    - init-db
+
+- name: Template a file to /var/lib/pgsql/14/data/postgresql.conf
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/14/data/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: "600"
+  notify:
+    - Start and enable postgresql-service
+  tags:
+    - init-db

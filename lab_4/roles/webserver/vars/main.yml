@@ -1,0 +1,7 @@
+---
+### Webserver
+nginx_port: 8080
+php_port: 9000
+db_request: "SELECT * FROM bookings.aircrafts"
+path_to_doc: /usr/share/nginx/html
+docs_name: index.php

@@ -1,0 +1,7 @@
+---
+### PG
+password_db_user: 123
+mask_of_server: 24
+allowed_ip_adresses: 192.168.11.0
+postgres_data_dir: /var/lib/pgsql/14/data
+postgres_major_version: 14
