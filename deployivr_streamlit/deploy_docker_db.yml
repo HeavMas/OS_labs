@@ -1,0 +1,35 @@
+---
+- name: Deploy Docker and restore PostgreSQL database
+  hosts: 10.0.16.7
+  become: true
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+      become: true
+
+    - name: Ensure Docker Compose is installed
+      apt:
+        name: docker-compose
+        state: present
+      become: true
+
+    - name: Start Docker Compose
+      shell: "docker-compose up -d"
+      args:
+        chdir: "IVRstand"
+
+    - name: Wait for containers to be up
+      pause:
+        seconds: 480  # 8 минут
+
+    - name: Copy SQL dump to the container
+      shell: "docker cp /path/to/dumpfile.sql dbivr:/tmp/dumpfile.sql"
+      args:
+        chdir: "/path/to/your/repo"
+
+    - name: Restore PostgreSQL database from dump file
+      shell: "docker exec -t dbivr psql -U postgres -d postgres -f /tmp/dumpfile.sql"
+      args:
+        chdir: "/path/to/your/repo"

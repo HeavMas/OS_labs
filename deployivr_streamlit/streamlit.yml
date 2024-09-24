@@ -1,0 +1,21 @@
+---
+- name: Deploy streamlit
+  hosts: 10.0.16.7
+  become: true
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+      become: true
+
+    - name: build Streamlit
+      shell: "docker build -t streamlit_demo ."
+      args:
+        chdir: "wolf_sounds_demo"
+    
+    - name: start Streamlit
+      shell: "docker run --gpus "0" -it -v $(pwd):/app -p 8501:8501 streamlit_demo:latest"
+      args:
+        chdir: "wolf_sounds_demo"
+
